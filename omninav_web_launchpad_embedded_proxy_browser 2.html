@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OmniNav - Web Launcher & Proxy Browser Portal</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            900: '#0c4a6e',
+                        },
+                        glass: {
+                            dark: 'rgba(15, 23, 42, 0.85)',
+                            border: 'rgba(255, 255, 255, 0.1)'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- FontAwesome & Fonts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS Styles -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0b0f19;
+            color: #f1f5f9;
+            overflow-x: hidden;
+        }
+
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.5);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.25);
+            border-radius: 9999px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(148, 163, 184, 0.5);
+        }
+
+        /* Gradient mesh background */
+        .bg-mesh {
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(14, 165, 233, 0.12) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(168, 85, 247, 0.12) 0px, transparent 50%),
+                radial-gradient(at 50% 100%, rgba(236, 72, 153, 0.08) 0px, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        .tab-item.active {
+            background-color: rgba(30, 41, 59, 1);
+            border-bottom: 2px solid #38bdf8;
+            color: #ffffff;
+        }
+
+        /* Iframe loading overlay pulse */
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.8; }
+        }
+        .glow-loading {
+            animation: pulse-glow 1.5s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-mesh min-h-screen flex flex-col justify-between selection:bg-brand-500 selection:text-white">
+
+    <!-- Top Global App Header -->
+    <header class="w-full bg-slate-900/90 backdrop-blur-md border-b border-slate-800/80 px-4 py-2.5 flex items-center justify-between z-30 sticky top-0">
+        <!-- Logo & Title -->
+        <div class="flex items-center space-x-3 shrink-0">
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-500 via-indigo-500 to-purple-500 flex items-center justify-center shadow-lg shadow-brand-500/20 text-white font-bold text-lg">
+                <i class="fa-solid fa-compass"></i>
+            </div>
+            <div class="hidden sm:block">
+                <h1 class="text-base font-bold text-white tracking-tight leading-none">Omni<span class="text-brand-400">Nav</span></h1>
+                <p class="text-[10px] text-slate-400">Web Portal & Proxy Workspace</p>
+            </div>
+        </div>
+
+        <!-- Tab Bar Container -->
+        <div id="tabContainer" class="flex-grow max-w-2xl mx-4 flex items-center space-x-1 overflow-x-auto custom-scrollbar py-1">
+            <!-- Dynamic tabs inserted via JS -->
+        </div>
+
+        <!-- Global Action Buttons -->
+        <div class="flex items-center space-x-2 shrink-0">
+            <button id="newTabBtn" title="New Tab" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs flex items-center gap-1.5 transition">
+                <i class="fa-solid fa-plus"></i>
+                <span class="hidden md:inline">New Tab</span>
+            </button>
+            <button id="openNotepadBtn" title="Open Quick Notepad" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs transition relative">
+                <i class="fa-solid fa-note-sticky"></i>
+            </button>
+            <button id="openHistoryBtn" title="Browsing Activity History" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs transition">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+            </button>
+            <button id="openProxyGuideBtn" title="Proxy Setup Guide" class="p-2 rounded-lg bg-brand-600/30 hover:bg-brand-600/50 text-brand-400 border border-brand-500/30 text-xs flex items-center gap-1.5 transition font-medium">
+                <i class="fa-solid fa-server"></i>
+                <span class="hidden lg:inline">Proxy Config</span>
+            </button>
+            <!-- Dev Panel Trigger Button -->
+            <button id="openDevPanelBtn" title="Developer Panel (Protected)" class="p-2 rounded-lg bg-purple-600/30 hover:bg-purple-600/50 text-purple-400 border border-purple-500/30 text-xs flex items-center gap-1.5 transition font-medium">
+                <i class="fa-solid fa-code-lock"></i>
+                <span class="hidden lg:inline">Dev Panel</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Address Bar & Browser Navigation Controls -->
+    <div class="w-full bg-slate-900/60 backdrop-blur-sm border-b border-slate-800/60 px-4 py-2 flex items-center gap-2 z-20">
+        <div class="flex items-center space-x-1 shrink-0">
+            <button id="navBackBtn" title="Go Back" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition text-xs">
+                <i class="fa-solid fa-arrow-left"></i>
+            </button>
+            <button id="navReloadBtn" title="Reload Frame" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition text-xs">
+                <i class="fa-solid fa-rotate-right"></i>
+            </button>
+            <button id="navHomeBtn" title="Dashboard Home" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition text-xs">
+                <i class="fa-solid fa-house"></i>
+            </button>
+        </div>
+
+        <!-- Address Bar Form -->
+        <form id="addressForm" class="flex-grow flex items-center relative">
+            <div id="engineDropdownTrigger" class="absolute left-2.5 flex items-center gap-1 cursor-pointer text-xs text-slate-400 hover:text-white z-10">
+                <i id="currentEngineIcon" class="fa-brands fa-google text-red-400"></i>
+                <i class="fa-solid fa-chevron-down text-[9px]"></i>
+            </div>
+
+            <!-- Engine Selection Menu -->
+            <div id="engineMenu" class="hidden absolute top-10 left-0 bg-slate-900 border border-slate-800 rounded-xl shadow-xl p-1 z-50 w-44 space-y-0.5">
+                <button type="button" data-engine="google" class="w-full text-left px-3 py-1.5 text-xs text-slate-300 hover:bg-slate-800 rounded-lg flex items-center gap-2">
+                    <i class="fa-brands fa-google text-red-400 w-4"></i> Google
+                </button>
+                <button type="button" data-engine="bing" class="w-full text-left px-3 py-1.5 text-xs text-slate-300 hover:bg-slate-800 rounded-lg flex items-center gap-2">
+                    <i class="fa-brands fa-microsoft text-blue-400 w-4"></i> Bing
+                </button>
+                <button type="button" data-engine="duckduckgo" class="w-full text-left px-3 py-1.5 text-xs text-slate-300 hover:bg-slate-800 rounded-lg flex items-center gap-2">
+                    <i class="fa-solid fa-shield-cat text-orange-400 w-4"></i> DuckDuckGo
+                </button>
+                <button type="button" data-engine="wikipedia" class="w-full text-left px-3 py-1.5 text-xs text-slate-300 hover:bg-slate-800 rounded-lg flex items-center gap-2">
+                    <i class="fa-brands fa-wikipedia-w text-slate-300 w-4"></i> Wikipedia
+                </button>
+            </div>
+
+            <input type="text" id="omniboxInput" placeholder="Enter URL or search term..." class="w-full bg-slate-950/80 border border-slate-800 rounded-xl pl-14 pr-20 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-brand-500 transition shadow-inner">
+            
+            <button type="button" id="clearOmniboxBtn" class="absolute right-12 text-slate-500 hover:text-slate-300 text-xs hidden">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <button type="submit" class="absolute right-2 px-2.5 py-1 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-[11px] font-medium transition">
+                Go
+            </button>
+        </form>
+
+        <!-- Proxy Mode Selector -->
+        <div class="hidden sm:flex items-center space-x-1 shrink-0">
+            <span class="text-[10px] text-slate-400 font-medium">Proxy Mode:</span>
+            <select id="proxyModeSelect" class="bg-slate-950 border border-slate-800 text-slate-300 text-[11px] rounded-lg px-2 py-1 focus:outline-none focus:border-brand-500">
+                <option value="direct">Direct Embed</option>
+                <option value="cors_allorigins">AllOrigins CORS</option>
+                <option value="cors_corsproxy">CorsProxy.io</option>
+                <option value="custom">Custom Proxy Server</option>
+            </select>
+        </div>
+
+        <button id="navOpenExternalBtn" title="Open URL in New Browser Tab" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition text-xs shrink-0">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+        </button>
+    </div>
+
+    <!-- Main Display Viewport Area -->
+    <main class="flex-grow relative w-full h-[calc(100vh-100px)] overflow-hidden">
+
+        <!-- DASHBOARD HOME VIEW (When no URL loaded or new tab) -->
+        <div id="dashboardView" class="w-full h-full overflow-y-auto custom-scrollbar p-6 max-w-5xl mx-auto flex flex-col justify-between">
+            <div class="space-y-8 my-auto py-8">
+                <!-- Big Search Box Banner -->
+                <div class="text-center space-y-3">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-500/10 border border-brand-500/20 text-brand-400 text-xs font-medium">
+                        <i class="fa-solid fa-bolt"></i> Fast Web Launchpad & Embedded Viewer
+                    </div>
+                    <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">Search or Launch Any Website</h2>
+                    <p class="text-xs sm:text-sm text-slate-400 max-w-lg mx-auto">Explore content directly embedded inside OmniNav or search across multiple search engines seamlessly.</p>
+                </div>
+
+                <!-- Big Dashboard Search Bar -->
+                <div class="max-w-2xl mx-auto relative">
+                    <div class="flex items-center bg-slate-900/90 border border-slate-700/80 rounded-2xl p-2 shadow-2xl shadow-brand-500/10 focus-within:border-brand-500 transition">
+                        <i class="fa-solid fa-magnifying-glass text-slate-400 ml-3 mr-2 text-sm"></i>
+                        <input type="text" id="dashSearchInput" placeholder="Search Google, DuckDuckGo or type a website address..." class="w-full bg-transparent text-sm text-white focus:outline-none placeholder:text-slate-500">
+                        <button id="dashSearchSubmit" class="bg-brand-600 hover:bg-brand-500 text-white text-xs px-5 py-2.5 rounded-xl font-medium transition shadow-md shadow-brand-500/20">
+                            Search / Open
+                        </button>
+                    </div>
+                    <div class="flex justify-between items-center px-3 pt-2 text-[11px] text-slate-500">
+                        <span id="dashDetectionStatus"><i class="fa-solid fa-globe mr-1"></i>Auto-detects URLs vs Search queries</span>
+                        <span id="dashProxyBadge" class="text-brand-400 font-medium">Direct Embed Active</span>
+                    </div>
+                </div>
+
+                <!-- Speed Dial Shortcuts -->
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-xs font-semibold text-slate-300 uppercase tracking-wider">Speed Dial Shortcuts</h3>
+                        <button id="addShortcutBtn" class="text-xs text-brand-400 hover:underline flex items-center gap-1">
+                            <i class="fa-solid fa-plus text-[10px]"></i> Add Shortcut
+                        </button>
+                    </div>
+                    <div id="shortcutGrid" class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <!-- Rendered dynamically via JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer note -->
+            <div class="text-center text-[11px] text-slate-500 border-t border-slate-800/80 pt-4">
+                OmniNav Workspaces &bull; Built with HTML5 & Tailwind CSS
+            </div>
+        </div>
+
+        <!-- IFRAME EMBED VIEW (Active when URL loaded) -->
+        <div id="iframeView" class="w-full h-full hidden flex-col relative bg-slate-950">
+            
+            <!-- Anti-Iframe Security Warning Banner (Hidden unless blocked) -->
+            <div id="iframeWarningBanner" class="bg-amber-500/10 border-b border-amber-500/20 px-4 py-2 flex items-center justify-between text-xs text-amber-300 hidden">
+                <div class="flex items-center gap-2 truncate">
+                    <i class="fa-solid fa-triangle-exclamation text-amber-400 shrink-0"></i>
+                    <span class="truncate">Sites with strict <code>X-Frame-Options</code> may restrict embedding. Switch proxy mode or open directly.</span>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                    <button onclick="document.getElementById('openProxyGuideBtn').click()" class="underline hover:text-white font-medium">Fix with Proxy</button>
+                    <button onclick="document.getElementById('navOpenExternalBtn').click()" class="bg-amber-500/20 hover:bg-amber-500/40 text-amber-200 px-2.5 py-1 rounded-md text-[11px] transition">Open Direct ↗</button>
+                </div>
+            </div>
+
+            <!-- Embedded Frame -->
+            <iframe id="activeIframe" class="w-full h-full border-none bg-white" sandbox="allow-scripts allow-same-origin allow-forms font-src 'self' data: https:;" src="about:blank"></iframe>
+        </div>
+
+    </main>
+
+    <!-- Quick Notepad Drawer -->
+    <div id="notepadDrawer" class="fixed right-0 top-0 bottom-0 w-80 bg-slate-900 border-l border-slate-800 shadow-2xl z-40 transform translate-x-full transition-transform duration-300 p-4 flex flex-col">
+        <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+            <h3 class="font-bold text-white text-sm flex items-center gap-2">
+                <i class="fa-solid fa-note-sticky text-brand-400"></i> Quick Workspace Notes
+            </h3>
+            <button id="closeNotepadBtn" class="text-slate-400 hover:text-white text-xs">
+                <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+        </div>
+        <textarea id="notepadTextarea" placeholder="Type quick notes, research findings, or URLs here..." class="flex-grow bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-slate-200 mt-3 focus:outline-none focus:border-brand-500 resize-none font-mono custom-scrollbar"></textarea>
+        <div class="flex justify-between items-center pt-3 text-[11px]">
+            <span id="notepadStatus" class="text-slate-500">Auto-saved to LocalStorage</span>
+            <button id="clearNotepadBtn" class="text-rose-400 hover:underline">Clear Notes</button>
+        </div>
+    </div>
+
+    <!-- History Drawer -->
+    <div id="historyDrawer" class="fixed right-0 top-0 bottom-0 w-80 bg-slate-900 border-l border-slate-800 shadow-2xl z-40 transform translate-x-full transition-transform duration-300 p-4 flex flex-col">
+        <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+            <h3 class="font-bold text-white text-sm flex items-center gap-2">
+                <i class="fa-solid fa-clock-rotate-left text-brand-400"></i> Browsing History
+            </h3>
+            <button id="closeHistoryBtn" class="text-slate-400 hover:text-white text-xs">
+                <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+        </div>
+        <div id="historyList" class="flex-grow overflow-y-auto custom-scrollbar my-3 space-y-2">
+            <!-- Dynamic history items -->
+        </div>
+        <div class="flex justify-between items-center pt-2 border-t border-slate-800 text-[11px]">
+            <span class="text-slate-500">Stored locally</span>
+            <button id="clearHistoryBtn" class="text-rose-400 hover:underline">Clear History</button>
+        </div>
+    </div>
+
+    <!-- Proxy Setup Modal -->
+    <div id="proxyModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl max-w-xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="font-bold text-white text-base flex items-center gap-2">
+                    <i class="fa-solid fa-server text-brand-400"></i> X-Frame & Proxy Options
+                </h3>
+                <button id="closeProxyModalBtn" class="text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-xmark text-base"></i>
+                </button>
+            </div>
+            
+            <div class="space-y-3 text-xs text-slate-300 leading-relaxed">
+                <p>Major web portals (Google, YouTube standard) block standard <code>&lt;iframe&gt;</code> rendering using <code>X-Frame-Options: SAMEORIGIN</code> security headers.</p>
+                
+                <div class="glass-panel p-3 rounded-xl border border-brand-500/20 space-y-2">
+                    <h4 class="font-semibold text-brand-400">Custom Node.js Proxy Endpoint</h4>
+                    <p class="text-[11px] text-slate-400">You can strip X-Frame-Options using a custom Node.js backend proxy server.</p>
+                    <div class="flex gap-2">
+                        <input type="text" id="customProxyInput" placeholder="http://localhost:3000/proxy?url=" class="flex-grow bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-brand-500">
+                        <button id="saveCustomProxyBtn" class="bg-brand-600 hover:bg-brand-500 text-white px-3 py-1.5 rounded-xl font-medium transition shrink-0">Save</button>
+                    </div>
+                </div>
+
+                <div class="space-y-1">
+                    <h4 class="font-semibold text-slate-200">Recommended Alternatives:</h4>
+                    <ul class="list-disc list-inside space-y-1 text-slate-400 text-[11px]">
+                        <li>Use YouTube Embed URLs (e.g. <code>youtube.com/embed/VIDEO_ID</code>)</li>
+                        <li>Use DuckDuckGo Lite Frame or Wikipedia Direct</li>
+                        <li>Use Chrome extensions like "Ignore X-Frame-Options" during local testing</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="flex justify-end pt-2">
+                <button id="dismissProxyModalBtn" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs px-4 py-2 rounded-xl transition">Got It</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Shortcut Modal -->
+    <div id="addShortcutModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl max-w-sm w-full p-5 space-y-4">
+            <h3 class="font-bold text-white text-sm">Add Speed Dial Shortcut</h3>
+            <form id="addShortcutForm" class="space-y-3 text-xs">
+                <div>
+                    <label class="text-slate-400 mb-1 block">Title</label>
+                    <input type="text" id="scTitleInput" placeholder="e.g., GitHub" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-slate-200 focus:outline-none focus:border-brand-500">
+                </div>
+                <div>
+                    <label class="text-slate-400 mb-1 block">URL</label>
+                    <input type="text" id="scUrlInput" placeholder="https://github.com" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-slate-200 focus:outline-none focus:border-brand-500">
+                </div>
+                <div>
+                    <label class="text-slate-400 mb-1 block">FontAwesome Icon Class</label>
+                    <input type="text" id="scIconInput" placeholder="fa-brands fa-github" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-slate-200 focus:outline-none focus:border-brand-500">
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" id="cancelShortcutBtn" class="px-3 py-1.5 rounded-xl bg-slate-800 text-slate-300">Cancel</button>
+                    <button type="submit" class="px-3 py-1.5 rounded-xl bg-brand-600 text-white font-medium">Add Shortcut</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Password Prompt Modal -->
+    <div id="devPasswordModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-purple-500/30 rounded-2xl shadow-2xl max-w-sm w-full p-6 space-y-4">
+            <div class="text-center space-y-1">
+                <div class="w-10 h-10 rounded-full bg-purple-500/10 text-purple-400 mx-auto flex items-center justify-center text-lg">
+                    <i class="fa-solid fa-lock"></i>
+                </div>
+                <h3 class="font-bold text-white text-base">Developer Authentication</h3>
+                <p class="text-xs text-slate-400">Enter the administrator password to access the device configuration panel.</p>
+            </div>
+            
+            <form id="devPasswordForm" class="space-y-3">
+                <div>
+                    <input type="password" id="devPasswordInput" placeholder="Enter Password..." required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-500 text-center tracking-widest font-mono">
+                    <div id="passwordAuthError" class="text-[11px] text-rose-400 mt-1 hidden text-center"><i class="fa-solid fa-circle-exclamation mr-1"></i>Incorrect password. Access denied.</div>
+                </div>
+                <div class="flex space-x-2 pt-1">
+                    <button type="button" id="closeDevPassModalBtn" class="w-1/2 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium">Cancel</button>
+                    <button type="submit" class="w-1/2 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-medium transition">Unlock</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Developer Panel Drawer/Modal -->
+    <div id="devPanelModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-purple-500/40 rounded-2xl shadow-2xl max-w-3xl w-full p-6 space-y-5 max-h-[90vh] overflow-y-auto custom-scrollbar">
+            
+            <!-- Header -->
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <div class="flex items-center space-x-2 text-purple-400">
+                    <i class="fa-solid fa-sliders text-lg"></i>
+                    <div>
+                        <h3 class="font-bold text-white text-base leading-none">Developer & Device Access Panel</h3>
+                        <p class="text-[10px] text-slate-400 mt-0.5">Control allowed device profiles and enforce system access permissions</p>
+                    </div>
+                </div>
+                <button id="closeDevPanelBtn" class="text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Global Device Policy Settings -->
+            <div class="glass-panel p-4 rounded-xl space-y-3 border border-slate-800">
+                <div class="flex justify-between items-center">
+                    <label class="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
+                        <i class="fa-solid fa-shield-cat text-purple-400"></i> Global Device Enforcement Policy:
+                    </label>
+                    <span id="policyStatusBadge" class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Allow All</span>
+                </div>
+                <select id="globalDevicePolicySelect" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-purple-500">
+                    <option value="allow_all">Allow All Devices (Default - Blocked List Enforced)</option>
+                    <option value="whitelist_only">Whitelist Only (Only explicit allowed devices permitted)</option>
+                    <option value="block_all">Block All External Devices (Developer Mode Only)</option>
+                </select>
+            </div>
+
+            <!-- Manual Device Rule Addition -->
+            <div class="glass-panel p-4 rounded-xl space-y-3 border border-slate-800">
+                <div class="text-xs font-semibold text-slate-200">Add Custom Device Permission Rule</div>
+                <form id="addDeviceRuleForm" class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <input type="text" id="newDeviceNameInput" placeholder="Device Label (e.g., Office Tablet)" required class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-purple-500">
+                    <input type="text" id="newDeviceIdInput" placeholder="Device Identifier / IP" required class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-purple-500 font-mono">
+                    <div class="flex space-x-2">
+                        <select id="newDeviceStatusSelect" class="bg-slate-950 border border-slate-800 rounded-xl px-2 py-1.5 text-xs text-white focus:outline-none focus:border-purple-500 flex-grow">
+                            <option value="allowed">Allowed</option>
+                            <option value="blocked">Blocked</option>
+                        </select>
+                        <button type="submit" class="bg-purple-600 hover:bg-purple-500 text-white text-xs px-3 py-1.5 rounded-xl font-medium transition">Add</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Device List Table -->
+            <div class="space-y-2">
+                <div class="flex justify-between items-center">
+                    <h4 class="text-xs font-semibold text-slate-300">Registered Devices & Client Sessions</h4>
+                    <span id="deviceCountLabel" class="text-[10px] text-slate-500">0 Total Devices</span>
+                </div>
+                
+                <div class="border border-slate-800 rounded-xl overflow-x-auto custom-scrollbar bg-slate-950/60">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-slate-900 border-b border-slate-800 text-slate-400 text-[11px]">
+                                <th class="p-2.5">Device Name / ID</th>
+                                <th class="p-2.5">Platform / User Agent</th>
+                                <th class="p-2.5">Last Active</th>
+                                <th class="p-2.5">Status</th>
+                                <th class="p-2.5 text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="deviceTableBody" class="divide-y divide-slate-800/60">
+                            <!-- Injected dynamically via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center pt-2">
+                <button id="resetDevicesBtn" class="text-xs text-rose-400 hover:underline">Reset Devices List</button>
+                <button id="dismissDevPanelBtn" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs px-4 py-2 rounded-xl transition">Close Panel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fullscreen Access Blocked Screen Override -->
+    <div id="deviceBlockedOverlay" class="fixed inset-0 bg-slate-950 z-[100] hidden flex flex-col items-center justify-center p-6 text-center">
+        <div class="max-w-md space-y-4">
+            <div class="w-16 h-16 bg-rose-500/10 text-rose-500 rounded-full flex items-center justify-center text-3xl mx-auto border border-rose-500/20">
+                <i class="fa-solid fa-ban"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-white tracking-tight">Device Access Restricted</h2>
+            <p class="text-xs text-slate-400 leading-relaxed">
+                This device or current session has been disabled by the system administrator in the Developer Panel. Access to OmniNav features and site embedding is currently blocked.
+            </p>
+            <div class="pt-2">
+                <button id="unblockPromptBtn" class="bg-purple-600 hover:bg-purple-500 text-white text-xs px-5 py-2.5 rounded-xl font-medium transition shadow-lg shadow-purple-500/20">
+                    <i class="fa-solid fa-key mr-1.5"></i> Admin Developer Login
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Logic Script -->
+    <script>
+        // Search Engine Pre-Configurations
+        const ENGINES = {
+            google: { name: 'Google', icon: 'fa-brands fa-google text-red-400', url: 'https://www.google.com/search?q=' },
+            bing: { name: 'Bing', icon: 'fa-brands fa-microsoft text-blue-400', url: 'https://www.bing.com/search?q=' },
+            duckduckgo: { name: 'DuckDuckGo', icon: 'fa-solid fa-shield-cat text-orange-400', url: 'https://html.duckduckgo.com/html/?q=' },
+            wikipedia: { name: 'Wikipedia', icon: 'fa-brands fa-wikipedia-w text-slate-300', url: 'https://en.wikipedia.org/wiki/Special:Search?search=' },
+            ecosia: { name: 'Ecosia', icon: 'fa-solid fa-tree text-emerald-400', url: 'https://www.ecosia.org/search?q=' },
+            reddit: { name: 'Reddit', icon: 'fa-brands fa-reddit text-orange-500', url: 'https://www.reddit.com/search/?q=' }
+        };
+
+        // Default Speed Dials
+        const DEFAULT_SHORTCUTS = [
+            { id: '1', title: 'Wikipedia', url: 'https://wikipedia.org', icon: 'fa-brands fa-wikipedia-w' },
+            { id: '2', title: 'DuckDuckGo', url: 'https://duckduckgo.com', icon: 'fa-solid fa-shield-cat' },
+            { id: '3', title: 'YouTube Embed', url: 'https://youtube.com', icon: 'fa-brands fa-youtube' },
+            { id: '4', title: 'GitHub', url: 'https://github.com', icon: 'fa-brands fa-github' },
+            { id: '5', title: 'Reddit', url: 'https://reddit.com', icon: 'fa-brands fa-reddit' },
+            { id: '6', title: 'Archive.org', url: 'https://archive.org', icon: 'fa-solid fa-box-archive' },
+            { id: '7', title: 'Bing Search', url: 'https://bing.com', icon: 'fa-brands fa-microsoft' },
+            { id: '8', title: 'Google Maps', url: 'https://maps.google.com', icon: 'fa-solid fa-map-location-dot' }
+        ];
+
+        // Global State
+        let activeEngineKey = 'google';
+        let tabs = [
+            { id: 'tab-1', title: 'New Tab', url: '', historyStack: [], historyIndex: -1 }
+        ];
+        let activeTabId = 'tab-1';
+        let shortcuts = JSON.parse(localStorage.getItem('omninav_shortcuts')) || DEFAULT_SHORTCUTS;
+        let browsingHistory = JSON.parse(localStorage.getItem('omninav_history')) || [];
+        let customProxyEndpoint = localStorage.getItem('omninav_custom_proxy') || 'http://localhost:3000/proxy?url=';
+
+        let devPassword = 'PASSWORD';
+        let globalDevicePolicy = localStorage.getItem('omninav_device_policy') || 'allow_all';
+        let devicesList = JSON.parse(localStorage.getItem('omninav_devices')) || [];
+
+        // DOM Element Cache
+        const tabContainer = document.getElementById('tabContainer');
+        const newTabBtn = document.getElementById('newTabBtn');
+        const omniboxInput = document.getElementById('omniboxInput');
+        const clearOmniboxBtn = document.getElementById('clearOmniboxBtn');
+        const addressForm = document.getElementById('addressForm');
+        const engineDropdownTrigger = document.getElementById('engineDropdownTrigger');
+        const engineMenu = document.getElementById('engineMenu');
+        const currentEngineIcon = document.getElementById('currentEngineIcon');
+        const proxyModeSelect = document.getElementById('proxyModeSelect');
+
+        const navBackBtn = document.getElementById('navBackBtn');
+        const navReloadBtn = document.getElementById('navReloadBtn');
+        const navHomeBtn = document.getElementById('navHomeBtn');
+        const navOpenExternalBtn = document.getElementById('navOpenExternalBtn');
+
+        const dashboardView = document.getElementById('dashboardView');
+        const iframeView = document.getElementById('iframeView');
+        const activeIframe = document.getElementById('activeIframe');
+        const iframeWarningBanner = document.getElementById('iframeWarningBanner');
+        const dashSearchInput = document.getElementById('dashSearchInput');
+        const dashSearchSubmit = document.getElementById('dashSearchSubmit');
+        const dashDetectionStatus = document.getElementById('dashDetectionStatus');
+        const dashProxyBadge = document.getElementById('dashProxyBadge');
+        const shortcutGrid = document.getElementById('shortcutGrid');
+
+        const historyDrawer = document.getElementById('historyDrawer');
+        const openHistoryBtn = document.getElementById('openHistoryBtn');
+        const closeHistoryBtn = document.getElementById('closeHistoryBtn');
+        const historyList = document.getElementById('historyList');
+        const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+
+        const notepadDrawer = document.getElementById('notepadDrawer');
+        const openNotepadBtn = document.getElementById('openNotepadBtn');
+        const closeNotepadBtn = document.getElementById('closeNotepadBtn');
+        const notepadTextarea = document.getElementById('notepadTextarea');
+        const notepadStatus = document.getElementById('notepadStatus');
+        const clearNotepadBtn = document.getElementById('clearNotepadBtn');
+
+        const proxyModal = document.getElementById('proxyModal');
+        const openProxyGuideBtn = document.getElementById('openProxyGuideBtn');
+        const closeProxyModalBtn = document.getElementById('closeProxyModalBtn');
+        const dismissProxyModalBtn = document.getElementById('dismissProxyModalBtn');
+        const customProxyInput = document.getElementById('customProxyInput');
+        const saveCustomProxyBtn = document.getElementById('saveCustomProxyBtn');
+
+        const addShortcutModal = document.getElementById('addShortcutModal');
+        const addShortcutBtn = document.getElementById('addShortcutBtn');
+        const cancelShortcutBtn = document.getElementById('cancelShortcutBtn');
+        const addShortcutForm = document.getElementById('addShortcutForm');
+
+        const openDevPanelBtn = document.getElementById('openDevPanelBtn');
+        const devPasswordModal = document.getElementById('devPasswordModal');
+        const devPasswordForm = document.getElementById('devPasswordForm');
+        const devPasswordInput = document.getElementById('devPasswordInput');
+        const passwordAuthError = document.getElementById('passwordAuthError');
+        const closeDevPassModalBtn = document.getElementById('closeDevPassModalBtn');
+
+        const devPanelModal = document.getElementById('devPanelModal');
+        const closeDevPanelBtn = document.getElementById('closeDevPanelBtn');
+        const dismissDevPanelBtn = document.getElementById('dismissDevPanelBtn');
+        const globalDevicePolicySelect = document.getElementById('globalDevicePolicySelect');
+        const policyStatusBadge = document.getElementById('policyStatusBadge');
+        
+        const addDeviceRuleForm = document.getElementById('addDeviceRuleForm');
+        const newDeviceNameInput = document.getElementById('newDeviceNameInput');
+        const newDeviceIdInput = document.getElementById('newDeviceIdInput');
+        const newDeviceStatusSelect = document.getElementById('newDeviceStatusSelect');
+        const deviceTableBody = document.getElementById('deviceTableBody');
+        const deviceCountLabel = document.getElementById('deviceCountLabel');
+        const resetDevicesBtn = document.getElementById('resetDevicesBtn');
+        
+        const deviceBlockedOverlay = document.getElementById('deviceBlockedOverlay');
+        const unblockPromptBtn = document.getElementById('unblockPromptBtn');
+
+        function initApp() {
+            renderTabs();
+            renderShortcuts();
+            renderHistory();
+            initNotepad();
+            setupEventListeners();
+            getOrRegisterCurrentDevice();
+            setupDevPanelEventListeners();
+            checkDeviceAccessPermission();
+            customProxyInput.value = customProxyEndpoint;
+        }
+
+        // Check if string is direct domain/URL or search query
+        function isUrl(str) {
+            const trimmed = str.trim();
+            const pattern = new RegExp('^(https?:\\/\\/)?'+
+                '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|'+
+                'localhost|'+
+                '(\\d{1,3}\\.){3}\\d{1,3})'+
+                '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*'+
+                '(\\?[;&a-z\\d%_.~+=-]*)?'+
+                '(\\#[-a-z\\d_]*)?$','i');
+            return !!pattern.test(trimmed) || (trimmed.includes('.') && !trimmed.includes(' '));
+        }
+
+        function formatUrl(str) {
+            let url = str.trim();
+            if (!/^https?:\/\//i.test(url)) {
+                url = 'https://' + url;
+            }
+            return url;
+        }
+
+        // Auto-format known sites for iframe embedding friendliness
+        function formatEmbedFriendlyUrl(rawUrl) {
+            let url = rawUrl;
+
+            // YouTube Video Watch -> Embed Conversion
+            if (url.includes('youtube.com/watch?v=')) {
+                const videoId = url.split('v=')[1]?.split('&')[0];
+                if (videoId) return `https://www.youtube.com/embed/${videoId}`;
+            }
+            if (url.includes('youtu.be/')) {
+                const videoId = url.split('youtu.be/')[1]?.split('?')[0];
+                if (videoId) return `https://www.youtube.com/embed/${videoId}`;
+            }
+
+            // Google Maps -> Embed Conversion
+            if (url.includes('google.com/maps') || url.includes('maps.google.com')) {
+                const query = new URLSearchParams(url.split('?')[1]).get('q') || 'World';
+                return `https://maps.google.com/maps?q=${encodeURIComponent(query)}&output=embed`;
+            }
+
+            // DuckDuckGo Standard -> DuckDuckGo Lite Frame
+            if (url === 'https://duckduckgo.com' || url === 'https://www.duckduckgo.com') {
+                return 'https://html.duckduckgo.com/html/';
+            }
+
+            return url;
+        }
+
+        // Apply CORS/Proxy wrapper based on current mode selection
+        function applyProxyTransform(rawUrl) {
+            const mode = proxyModeSelect.value;
+            const formatted = formatEmbedFriendlyUrl(rawUrl);
+
+            if (mode === 'cors_allorigins') {
+                return `https://api.allorigins.win/raw?url=${encodeURIComponent(formatted)}`;
+            } else if (mode === 'cors_corsproxy') {
+                return `https://corsproxy.io/?${encodeURIComponent(formatted)}`;
+            } else if (mode === 'custom') {
+                return `${customProxyEndpoint}${encodeURIComponent(formatted)}`;
+            }
+
+            return formatted; // Direct mode
+        }
+
+        function renderTabs() {
+            tabContainer.innerHTML = '';
+            tabs.forEach(tab => {
+                const isActive = tab.id === activeTabId;
+                const tabEl = document.createElement('div');
+                tabEl.className = `tab-item text-xs font-medium px-3 py-1.5 rounded-lg flex items-center space-x-2 cursor-pointer transition shrink-0 max-w-[160px] ${
+                    isActive ? 'active bg-slate-800 text-white' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                }`;
+
+                tabEl.innerHTML = `
+                    <i class="fa-solid fa-globe text-[10px] text-brand-400"></i>
+                    <span class="truncate flex-grow text-[11px]">${tab.title || 'New Tab'}</span>
+                    ${tabs.length > 1 ? `<i data-close="${tab.id}" class="fa-solid fa-xmark text-[10px] hover:text-rose-400 p-0.5"></i>` : ''}
+                `;
+
+                tabEl.onclick = (e) => {
+                    if (e.target.hasAttribute('data-close')) {
+                        closeTab(e.target.getAttribute('data-close'));
+                    } else {
+                        switchTab(tab.id);
+                    }
+                };
+
+                tabContainer.appendChild(tabEl);
+            });
+        }
+
+        function createNewTab(initialUrl = '') {
+            const newId = 'tab-' + Date.now();
+            const newTab = {
+                id: newId,
+                title: 'New Tab',
+                url: initialUrl,
+                historyStack: initialUrl ? [initialUrl] : [],
+                historyIndex: initialUrl ? 0 : -1
+            };
+            tabs.push(newTab);
+            switchTab(newId);
+            if (initialUrl) navigateActiveTab(initialUrl);
+        }
+
+        function closeTab(tabId) {
+            if (tabs.length <= 1) return;
+            tabs = tabs.filter(t => t.id !== tabId);
+            if (activeTabId === tabId) {
+                activeTabId = tabs[tabs.length - 1].id;
+            }
+            renderTabs();
+            syncViewportWithActiveTab();
+        }
+
+        function switchTab(tabId) {
+            activeTabId = tabId;
+            renderTabs();
+            syncViewportWithActiveTab();
+        }
+
+        function getActiveTab() {
+            return tabs.find(t => t.id === activeTabId) || tabs[0];
+        }
+
+        function syncViewportWithActiveTab() {
+            const tab = getActiveTab();
+            omniboxInput.value = tab.url || '';
+            clearOmniboxBtn.classList.toggle('hidden', !tab.url);
+
+            if (!tab.url) {
+                // Show Dashboard
+                dashboardView.classList.remove('hidden');
+                iframeView.classList.add('hidden');
+                iframeView.classList.remove('flex');
+                activeIframe.src = 'about:blank';
+                iframeWarningBanner.classList.add('hidden');
+            } else {
+                // Show Iframe
+                dashboardView.classList.add('hidden');
+                iframeView.classList.remove('hidden');
+                iframeView.classList.add('flex');
+
+                const proxyUrl = applyProxyTransform(tab.url);
+                activeIframe.src = proxyUrl;
+                
+                // Display frame security notice if in direct mode
+                if (proxyModeSelect.value === 'direct') {
+                    iframeWarningBanner.classList.remove('hidden');
+                } else {
+                    iframeWarningBanner.classList.add('hidden');
+                }
+            }
+        }
+
+        function navigateActiveTab(input) {
+            const query = input.trim();
+            if (!query) return;
+
+            let targetUrl = '';
+            if (isUrl(query)) {
+                targetUrl = formatUrl(query);
+            } else {
+                const engine = ENGINES[activeEngineKey];
+                targetUrl = engine.url + encodeURIComponent(query);
+            }
+
+            const tab = getActiveTab();
+            tab.url = targetUrl;
+            
+            // Extract title label
+            try {
+                const host = new URL(targetUrl).hostname.replace('www.', '');
+                tab.title = host || query;
+            } catch {
+                tab.title = query;
+            }
+
+            // Push history
+            tab.historyStack = tab.historyStack.slice(0, tab.historyIndex + 1);
+            tab.historyStack.push(targetUrl);
+            tab.historyIndex = tab.historyStack.length - 1;
+
+            saveBrowsingHistory(query, targetUrl);
+            renderTabs();
+            syncViewportWithActiveTab();
+        }
+
+        function renderShortcuts() {
+            shortcutGrid.innerHTML = '';
+            shortcuts.forEach(sc => {
+                const item = document.createElement('div');
+                item.className = 'glass-panel p-3 rounded-xl hover:bg-slate-800/80 transition cursor-pointer flex items-center justify-between group border border-slate-800';
+                item.innerHTML = `
+                    <div class="flex items-center space-x-2.5 truncate">
+                        <div class="w-7 h-7 rounded-lg bg-brand-500/10 text-brand-400 flex items-center justify-center text-xs shrink-0">
+                            <i class="${sc.icon || 'fa-solid fa-globe'}"></i>
+                        </div>
+                        <span class="text-xs font-medium text-slate-200 truncate">${sc.title}</span>
+                    </div>
+                    <button data-delete="${sc.id}" class="text-slate-500 hover:text-rose-400 opacity-0 group-hover:opacity-100 transition p-1 text-xs">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                `;
+
+                item.onclick = (e) => {
+                    if (e.target.closest('[data-delete]')) {
+                        e.stopPropagation();
+                        shortcuts = shortcuts.filter(s => s.id !== sc.id);
+                        localStorage.setItem('omninav_shortcuts', JSON.stringify(shortcuts));
+                        renderShortcuts();
+                    } else {
+                        navigateActiveTab(sc.url);
+                    }
+                };
+
+                shortcutGrid.appendChild(item);
+            });
+        }
+
+        function saveBrowsingHistory(query, url) {
+            const entry = {
+                id: Date.now(),
+                query: query,
+                url: url,
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            };
+            browsingHistory.unshift(entry);
+            if (browsingHistory.length > 50) browsingHistory.pop();
+            localStorage.setItem('omninav_history', JSON.stringify(browsingHistory));
+            renderHistory();
+        }
+
+        function renderHistory() {
+            historyList.innerHTML = '';
+            if (browsingHistory.length === 0) {
+                historyList.innerHTML = `<div class="text-center text-slate-500 text-xs py-8">No browsing history yet.</div>`;
+                return;
+            }
+
+            browsingHistory.forEach(item => {
+                const el = document.createElement('div');
+                el.className = 'p-2.5 rounded-xl bg-slate-950/60 hover:bg-slate-800/60 border border-slate-800/80 transition cursor-pointer space-y-1';
+                el.innerHTML = `
+                    <div class="flex justify-between items-center text-[11px]">
+                        <span class="font-medium text-brand-400 truncate">${item.query}</span>
+                        <span class="text-[9px] text-slate-500">${item.time}</span>
+                    </div>
+                    <div class="text-[10px] text-slate-400 truncate">${item.url}</div>
+                `;
+                el.onclick = () => {
+                    navigateActiveTab(item.url);
+                    historyDrawer.classList.add('translate-x-full');
+                };
+                historyList.appendChild(el);
+            });
+        }
+
+        function initNotepad() {
+            notepadTextarea.value = localStorage.getItem('omninav_notes') || '';
+            notepadTextarea.addEventListener('input', () => {
+                localStorage.setItem('omninav_notes', notepadTextarea.value);
+                notepadStatus.textContent = 'Saved just now';
+                setTimeout(() => { notepadStatus.textContent = 'Auto-saved to LocalStorage'; }, 2000);
+            });
+            clearNotepadBtn.addEventListener('click', () => {
+                notepadTextarea.value = '';
+                localStorage.removeItem('omninav_notes');
+            });
+        }
+
+        function getOrRegisterCurrentDevice() {
+            let currentDeviceId = localStorage.getItem('omninav_current_device_id');
+            if (!currentDeviceId) {
+                currentDeviceId = 'dev-' + Math.random().toString(36).substring(2, 9);
+                localStorage.setItem('omninav_current_device_id', currentDeviceId);
+            }
+
+            const ua = navigator.userAgent;
+            let deviceType = 'Desktop';
+            if (/mobile/i.test(ua)) deviceType = 'Mobile';
+            if (/ipad|tablet/i.test(ua)) deviceType = 'Tablet';
+
+            let existing = devicesList.find(d => d.id === currentDeviceId);
+            if (!existing) {
+                existing = {
+                    id: currentDeviceId,
+                    name: `Current ${deviceType}`,
+                    ua: ua.substring(0, 32) + '...',
+                    lastActive: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                    status: 'allowed',
+                    isCurrent: true
+                };
+                devicesList.push(existing);
+                saveDevices();
+            } else {
+                existing.lastActive = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                existing.isCurrent = true;
+                saveDevices();
+            }
+
+            return currentDeviceId;
+        }
+
+        function saveDevices() {
+            localStorage.setItem('omninav_devices', JSON.stringify(devicesList));
+        }
+
+        // Check Access & Enforce Blocking Rules
+        function checkDeviceAccessPermission() {
+            const currentId = getOrRegisterCurrentDevice();
+            const currentDevice = devicesList.find(d => d.id === currentId);
+            
+            let isBlocked = false;
+
+            if (globalDevicePolicy === 'block_all') {
+                isBlocked = true;
+            } else if (globalDevicePolicy === 'whitelist_only') {
+                isBlocked = !currentDevice || currentDevice.status !== 'allowed';
+            } else { // allow_all
+                isBlocked = currentDevice && currentDevice.status === 'blocked';
+            }
+
+            if (isBlocked) {
+                deviceBlockedOverlay.classList.remove('hidden');
+            } else {
+                deviceBlockedOverlay.classList.add('hidden');
+            }
+        }
+
+        function renderDevicesTable() {
+            deviceTableBody.innerHTML = '';
+            const currentId = localStorage.getItem('omninav_current_device_id');
+            deviceCountLabel.textContent = `${devicesList.length} Registered Devices`;
+
+            if (devicesList.length === 0) {
+                deviceTableBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500">No device records found.</td></tr>`;
+                return;
+            }
+
+            devicesList.forEach(device => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-900/50 transition';
+                const isCurrent = device.id === currentId;
+
+                tr.innerHTML = `
+                    <td class="p-2.5 font-medium text-slate-200 flex items-center space-x-1.5">
+                        <span>${device.name}</span>
+                        ${isCurrent ? '<span class="text-[9px] bg-purple-500/20 text-purple-300 px-1.5 py-0.5 rounded border border-purple-500/30">THIS DEVICE</span>' : ''}
+                    </td>
+                    <td class="p-2.5 text-slate-400 font-mono text-[10px] truncate max-w-[150px]">${device.ua || 'N/A'}</td>
+                    <td class="p-2.5 text-slate-400 text-[11px]">${device.lastActive || 'Now'}</td>
+                    <td class="p-2.5">
+                        <span class="text-[10px] px-2 py-0.5 rounded-full ${
+                            device.status === 'allowed' 
+                                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
+                                : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                        }">
+                            ${device.status.toUpperCase()}
+                        </span>
+                    </td>
+                    <td class="p-2.5 text-right">
+                        <button data-toggle-status="${device.id}" class="text-[11px] px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 transition">
+                            ${device.status === 'allowed' ? 'Block Access' : 'Allow Access'}
+                        </button>
+                    </td>
+                `;
+
+                tr.querySelector('[data-toggle-status]').onclick = () => {
+                    device.status = device.status === 'allowed' ? 'blocked' : 'allowed';
+                    saveDevices();
+                    renderDevicesTable();
+                    checkDeviceAccessPermission();
+                };
+
+                deviceTableBody.appendChild(tr);
+            });
+        }
+
+        function setupDevPanelEventListeners() {
+            openDevPanelBtn.addEventListener('click', () => {
+                devPasswordInput.value = '';
+                passwordAuthError.classList.add('hidden');
+                devPasswordModal.classList.remove('hidden');
+                devPasswordInput.focus();
+            });
+
+            closeDevPassModalBtn.addEventListener('click', () => {
+                devPasswordModal.classList.add('hidden');
+            });
+
+            unblockPromptBtn.addEventListener('click', () => {
+                devPasswordInput.value = '';
+                passwordAuthError.classList.add('hidden');
+                devPasswordModal.classList.remove('hidden');
+            });
+
+            devPasswordForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                if (devPasswordInput.value === devPassword) {
+                    devPasswordModal.classList.add('hidden');
+                    devPanelModal.classList.remove('hidden');
+                    renderDevicesTable();
+                } else {
+                    passwordAuthError.classList.remove('hidden');
+                }
+            });
+
+            closeDevPanelBtn.addEventListener('click', () => devPanelModal.classList.add('hidden'));
+            dismissDevPanelBtn.addEventListener('click', () => devPanelModal.classList.add('hidden'));
+
+            globalDevicePolicySelect.value = globalDevicePolicy;
+            policyStatusBadge.textContent = globalDevicePolicySelect.options[globalDevicePolicySelect.selectedIndex].text;
+
+            globalDevicePolicySelect.addEventListener('change', () => {
+                globalDevicePolicy = globalDevicePolicySelect.value;
+                localStorage.setItem('omninav_device_policy', globalDevicePolicy);
+                policyStatusBadge.textContent = globalDevicePolicySelect.options[globalDevicePolicySelect.selectedIndex].text;
+                checkDeviceAccessPermission();
+            });
+
+            addDeviceRuleForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const name = newDeviceNameInput.value.trim();
+                const id = newDeviceIdInput.value.trim();
+                const status = newDeviceStatusSelect.value;
+
+                devicesList.push({
+                    id: id,
+                    name: name,
+                    ua: 'Custom Admin Rule',
+                    lastActive: 'Manual Rule',
+                    status: status
+                });
+
+                saveDevices();
+                renderDevicesTable();
+                checkDeviceAccessPermission();
+
+                newDeviceNameInput.value = '';
+                newDeviceIdInput.value = '';
+            });
+
+            resetDevicesBtn.addEventListener('click', () => {
+                devicesList = [];
+                saveDevices();
+                getOrRegisterCurrentDevice();
+                renderDevicesTable();
+                checkDeviceAccessPermission();
+            });
+        }
+
+        function setupEventListeners() {
+            newTabBtn.onclick = () => createNewTab();
+
+            addressForm.onsubmit = (e) => {
+                e.preventDefault();
+                navigateActiveTab(omniboxInput.value);
+            };
+
+            clearOmniboxBtn.onclick = () => {
+                omniboxInput.value = '';
+                clearOmniboxBtn.classList.add('hidden');
+            };
+
+            omniboxInput.oninput = () => {
+                clearOmniboxBtn.classList.toggle('hidden', !omniboxInput.value);
+            };
+
+            dashSearchSubmit.onclick = () => {
+                if (dashSearchInput.value.trim()) {
+                    navigateActiveTab(dashSearchInput.value);
+                }
+            };
+
+            dashSearchInput.onkeypress = (e) => {
+                if (e.key === 'Enter' && dashSearchInput.value.trim()) {
+                    navigateActiveTab(dashSearchInput.value);
+                }
+            };
+
+            // Search engine menu
+            engineDropdownTrigger.onclick = () => engineMenu.classList.toggle('hidden');
+            document.querySelectorAll('#engineMenu button').forEach(btn => {
+                btn.onclick = () => {
+                    activeEngineKey = btn.getAttribute('data-engine');
+                    const engine = ENGINES[activeEngineKey];
+                    currentEngineIcon.className = engine.icon;
+                    engineMenu.classList.add('hidden');
+                };
+            });
+
+            proxyModeSelect.onchange = () => {
+                dashProxyBadge.textContent = proxyModeSelect.options[proxyModeSelect.selectedIndex].text;
+                syncViewportWithActiveTab();
+            };
+
+            navBackBtn.onclick = () => {
+                const tab = getActiveTab();
+                if (tab.historyIndex > 0) {
+                    tab.historyIndex--;
+                    tab.url = tab.historyStack[tab.historyIndex];
+                    renderTabs();
+                    syncViewportWithActiveTab();
+                }
+            };
+
+            navReloadBtn.onclick = () => {
+                syncViewportWithActiveTab();
+            };
+
+            navHomeBtn.onclick = () => {
+                const tab = getActiveTab();
+                tab.url = '';
+                renderTabs();
+                syncViewportWithActiveTab();
+            };
+
+            navOpenExternalBtn.onclick = () => {
+                const tab = getActiveTab();
+                if (tab.url) window.open(tab.url, '_blank');
+            };
+
+            // Drawers
+            openHistoryBtn.onclick = () => historyDrawer.classList.remove('translate-x-full');
+            closeHistoryBtn.onclick = () => historyDrawer.classList.add('translate-x-full');
+            clearHistoryBtn.onclick = () => {
+                browsingHistory = [];
+                localStorage.removeItem('omninav_history');
+                renderHistory();
+            };
+
+            openNotepadBtn.onclick = () => notepadDrawer.classList.remove('translate-x-full');
+            closeNotepadBtn.onclick = () => notepadDrawer.classList.add('translate-x-full');
+
+            // Modals
+            openProxyGuideBtn.onclick = () => proxyModal.classList.remove('hidden');
+            closeProxyModalBtn.onclick = () => proxyModal.classList.add('hidden');
+            dismissProxyModalBtn.onclick = () => proxyModal.classList.add('hidden');
+
+            saveCustomProxyBtn.onclick = () => {
+                customProxyEndpoint = customProxyInput.value.trim();
+                localStorage.setItem('omninav_custom_proxy', customProxyEndpoint);
+                alert('Custom proxy URL saved!');
+            };
+
+            addShortcutBtn.onclick = () => addShortcutModal.classList.remove('hidden');
+            cancelShortcutBtn.onclick = () => addShortcutModal.classList.add('hidden');
+            addShortcutForm.onsubmit = (e) => {
+                e.preventDefault();
+                const title = document.getElementById('scTitleInput').value.trim();
+                const url = document.getElementById('scUrlInput').value.trim();
+                const icon = document.getElementById('scIconInput').value.trim();
+
+                shortcuts.push({ id: Date.now().toString(), title, url, icon });
+                localStorage.setItem('omninav_shortcuts', JSON.stringify(shortcuts));
+                renderShortcuts();
+                addShortcutModal.classList.add('hidden');
+                addShortcutForm.reset();
+            };
+        }
+
+        // Initialize application on window load
+        window.onload = function() {
+            initApp();
+        };
+    </script>
+</body>
+</html>
